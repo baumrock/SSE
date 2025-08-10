@@ -33,6 +33,11 @@ class Sse extends WireData implements Module, ConfigurableModule
     );
   }
 
+  public function init(): void
+  {
+    wire()->addHook('/sse-user-token', $this, 'getUserToken');
+  }
+
   public function ready(): void
   {
     if (wire()->page->template == 'admin') {
@@ -59,6 +64,21 @@ class Sse extends WireData implements Module, ConfigurableModule
   public function getModuleConfigInputfields($inputfields)
   {
     return $inputfields;
+  }
+
+  public function getUserToken(HookEvent $event): string
+  {
+    $key = (new WireRandom())->alphanumeric(0, [
+      'minLength' => 30,
+      'maxLength' => 50,
+    ]);
+    wire()->cache->save(
+      "sse-user-token-$key",
+      wire()->user->id,
+      // token is valid for 30 seconds
+      30
+    );
+    return $key;
   }
 
   public function send(string $message): void
@@ -88,6 +108,16 @@ class Sse extends WireData implements Module, ConfigurableModule
     if (!isset($this->streams[$stream])) return;
     $object = $this->streams[$stream]['object'];
     $method = $this->streams[$stream]['method'];
+
+    // set user from token
+    $userToken = "sse-user-token-" . $_GET['user'];
+    $userId = wire()->cache->get($userToken);
+    if (!$userId) return;
+    wire()->user = wire()->users->get($userId);
+    if (!wire()->user->id) return;
+
+    // delete user token to make sure it is not used again
+    wire()->cache->delete($userToken);
 
     // disable tracy for the SSE stream
     wire()->config->tracy = ['enabled' => false];

@@ -36,7 +36,9 @@ class SseDemo extends WireData implements Module, ConfigurableModule
 
   public function serverTime(Sse $sse)
   {
-    $sse->send(date('Y-m-d H:i:s'));
+    $user = wire()->user;
+    if (!$user->isSuperuser()) die('no access');
+    $sse->send("User #$user @ " . date('Y-m-d H:i:s'));
   }
 
   public function createPages(Sse $sse, Iterator $iterator)
@@ -67,7 +69,6 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'parent' => 1,
       'name^=' => 'tmp-',
       'include' => 'all',
-      'check_access' => 0,
     ];
 
     // first run
@@ -96,7 +97,6 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $selector = [
       'parent' => wire()->config->trashPageID,
       'include' => 'all',
-      'check_access' => 0,
     ];
 
     // first run
@@ -166,6 +166,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'icon' => 'trash',
       'notes' => "This will delete all $inTrash pages in trash",
     ]);
+
     return $inputfields;
   }
 }

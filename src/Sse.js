@@ -17,12 +17,21 @@ var ProcessWire = ProcessWire || {};
       this.rootUrl = ProcessWire.config.urls.root || "/";
     }
 
-    start(params) {
+    async getUserToken() {
+      return fetch("/sse-user-token")
+        .then((response) => response.text())
+        .then((key) => key);
+    }
+
+    async start(params) {
       if (this.started) return;
       this.started = true;
 
+      const key = await this.getUserToken();
+
       // merge params with url params
       const urlParams = { ...this.urlParams, ...params };
+      urlParams.user = key;
 
       const evtSource = new EventSource(this.url(urlParams), {
         withCredentials: true,
