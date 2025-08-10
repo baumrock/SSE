@@ -53,7 +53,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $p = wire()->pages->new([
       'parent' => 1,
       'template' => 'basic-page',
-      'name' => 'tmp-' . uniqid(),
+      'name' => 'sse-tmp-' . uniqid(),
     ]);
 
     // send progress
@@ -67,7 +67,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
   {
     $selector = [
       'parent' => 1,
-      'name^=' => 'tmp-',
+      'name^=' => 'sse-tmp-',
       'include' => 'all',
     ];
 
@@ -140,19 +140,19 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'label' => 'Create Pages',
       'value' => wire()->files->render(__DIR__ . '/demo/create.php'),
       'icon' => 'plus',
-      'notes' => 'This will create pages using template "basic-page" and set a custom name "tmp-xxx"',
+      'notes' => 'This will create pages using template "basic-page" and set a custom name "sse-tmp-xxx"',
     ]);
 
     $toTrash = wire()->pages->count([
       'parent' => 1,
-      'name^=' => 'tmp-',
+      'name^=' => 'sse-tmp-',
     ]);
     $inputfields->add([
       'type' => 'markup',
       'label' => 'Trash Created Pages',
       'value' => wire()->files->render(__DIR__ . '/demo/trash-pages.php'),
       'icon' => 'trash-o',
-      'notes' => "This will trash all $toTrash pages with name tmp-...",
+      'notes' => "This will trash all $toTrash pages with name sse-tmp-...",
     ]);
 
     $inTrash = wire()->pages->count([

@@ -153,7 +153,7 @@ Currently not implemented. Future update.
 
 - `ssedemo-server-time`: Emits current server time every second; only for superusers.
 - `ssedemo-create-pages`: Creates `basic-page` pages under root; takes `count` via URL param.
-- `ssedemo-trash-pages`: Moves previously created `tmp-*` pages to trash.
+- `ssedemo-trash-pages`: Moves previously created `sse-tmp-*` pages to trash.
 - `ssedemo-empty-trash`: Permanently deletes pages from trash.
 
 See the rendered UI in the `SseDemo` module config for ready‑to‑use snippets (files in `public/site/modules/Sse/demo/`).
