@@ -88,8 +88,21 @@ class Sse extends WireData implements Module, ConfigurableModule
     return $key;
   }
 
-  public function send(string $message): void
-  {
+  public function send(
+    string $message,
+    ?Iterator $iterator = null
+  ): void {
+    if ($iterator) {
+      $data = [
+        'message' => $message,
+        'iterator' => [
+          'num' => $iterator->num,
+          'max' => $iterator->max,
+          'percent' => $iterator->percent,
+        ],
+      ];
+      $message = json_encode($data);
+    }
     echo "data: $message\n\n";
     echo str_pad('', 8186) . "\n";
     flush();

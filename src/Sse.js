@@ -9,6 +9,8 @@ var ProcessWire = ProcessWire || {};
 
   class Stream {
     started = false;
+    progressCallback = null;
+    throttle = 750;
 
     constructor(name, onMessage) {
       this.name = name;
@@ -23,9 +25,35 @@ var ProcessWire = ProcessWire || {};
         .then((key) => key);
     }
 
+    onProgress(callback, throttle = null) {
+      this.progressCallback = callback;
+      if (throttle) this.throttle = throttle;
+    }
+
+    setProgress(event) {
+      if (!this.progressCallback) return;
+      if (!event.data.startsWith("{")) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (!data.iterator) return;
+        this.progress = data.iterator;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     async start(params) {
       if (this.started) return;
       this.started = true;
+      this.startInterval();
+      if (this.progressCallback) {
+        this.progress = {
+          num: 0,
+          max: 0,
+          percent: 0,
+        };
+        this.progressCallback(this.progress);
+      }
 
       const key = await this.getUserToken();
 
@@ -40,6 +68,7 @@ var ProcessWire = ProcessWire || {};
       evtSource.onmessage = (event) => {
         if (event.data === "SSE_STOP") this.stop();
         this.onMessage(event);
+        this.setProgress(event);
       };
 
       // override this before calling start() for custom error handling
@@ -61,6 +90,15 @@ var ProcessWire = ProcessWire || {};
             console.warn("SSE connection error");
         }
       };
+    }
+
+    startInterval() {
+      this.interval = setInterval(() => {
+        if (!this.progress) return clearInterval(this.interval);
+        if (!this.progressCallback) return;
+        this.progressCallback(this.progress);
+        if (!this.started) clearInterval(this.interval);
+      }, this.throttle);
     }
 
     stop() {

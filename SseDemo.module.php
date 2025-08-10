@@ -84,8 +84,11 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       return $sse->stop();
     }
 
-    // send progress
-    $sse->send($iterator->num . '/' . $iterator->max . ': trashed ' . $p->name);
+    // send data to client
+    $sse->send(
+      $iterator->num . '/' . $iterator->max . ': trashed ' . $p->name,
+      $iterator
+    );
 
     // no sleep to instantly run next iteration
     $sse->sleep = 0;
@@ -113,7 +116,10 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     }
 
     // send progress
-    $sse->send($iterator->num . '/' . $iterator->max . ': deleted ' . $p->name);
+    $sse->send(
+      $iterator->num . '/' . $iterator->max . ': deleted ' . $p->name,
+      $iterator
+    );
 
     // no sleep to instantly run next iteration
     $sse->sleep = 0;
@@ -138,7 +144,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $inputfields->add([
       'type' => 'markup',
       'label' => 'Create Pages',
-      'value' => wire()->files->render(__DIR__ . '/demo/create.php'),
+      'value' => wire()->files->render(__DIR__ . '/demo/create-pages.php'),
       'icon' => 'plus',
       'notes' => 'This will create pages using template "basic-page" and set a custom name "sse-tmp-xxx"',
     ]);

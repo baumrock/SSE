@@ -1,5 +1,6 @@
 <div>
-  <textarea name='empty-trash-status' rows=5 class='uk-textarea uk-margin-small-bottom'></textarea>
+  <textarea name='empty-trash-status' rows=5 class='uk-textarea uk-margin-remove'></textarea>
+  <progress id="empty-trash-progress" class="uk-progress uk-margin" value="0" max="100"></progress>
   <button id="empty-trash" class='uk-button uk-button-primary'>Start</button>
   <button id="stop-empty-trash" class='uk-button uk-button-secondary'>Stop</button>
 </div>
@@ -13,6 +14,13 @@
         textarea.value = event.data + "\n" + textarea.value;
       }
     );
+
+    // update progress bar
+    const progressBar = document.querySelector('#empty-trash-progress');
+    stream.onProgress((progress) => {
+      progressBar.value = progress.percent;
+    });
+
     // click on start button
     document.querySelector('#empty-trash').addEventListener(
       'click',
@@ -20,6 +28,7 @@
         e.preventDefault();
         stream.start();
       });
+
     // click on stop button
     document.querySelector('#stop-empty-trash').addEventListener(
       'click',
