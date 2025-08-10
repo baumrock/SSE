@@ -63,6 +63,13 @@ class Sse extends WireData implements Module, ConfigurableModule
    */
   public function getModuleConfigInputfields($inputfields)
   {
+    $httpVersion = $_SERVER['SERVER_PROTOCOL'] ?? 'unknown';
+    $inputfields->add([
+      'type' => 'markup',
+      'label' => 'SERVER_PROTOCOL',
+      'value' => $httpVersion,
+      'notes' => 'Chrome has a limit of 6 open connections per domain per client on HTTP/1.1! This means you can only have 6 tabs open at the same time.',
+    ]);
     return $inputfields;
   }
 
