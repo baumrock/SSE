@@ -159,3 +159,42 @@ Currently not implemented. Future update.
 See the rendered UI in the `SseDemo` module config for ready‑to‑use snippets (files in `public/site/modules/Sse/demo/`).
 
 <img src=https://i.imgur.com/bzCdwYI.png class=blur>
+
+## Progress Bar Feature
+
+The SSE module includes a built-in progress bar component that makes it easy to display real-time progress for long-running tasks.
+
+### Backend
+
+All you have to do is to pass the `Iterator` as second parameter to the `$sse->send()` call:
+
+```php
+$sse->send(
+  "your message",
+  $iterator
+);
+```
+
+The frontend SSE script will then be able to read the progress while it is running!
+
+### Frontend
+
+UIkit offers a progressbar component that we can use to show the progress of the long running task. All we have to do is set a value and a maximum:
+
+```html
+<progress id="trash-pages-progress" class="uk-progress" value="0" max="100"></progress>
+```
+
+Then all we have to do in our frontend is to update the progress bar's value:
+
+```js
+const stream = ProcessWire.Sse.stream(...);
+
+// update progress bar
+const progressBar = document.querySelector('#trash-pages-progress');
+stream.onProgress((progress) => {
+  progressBar.value = progress.percent;
+});
+```
+
+Note: The `progress` object does not only contain the percent, it also contains the `num` (current 1-based iteration count) and `max` properties.

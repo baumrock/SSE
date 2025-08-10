@@ -18,7 +18,7 @@
     // update progress bar
     const progressBar = document.querySelector('#trash-pages-progress');
     stream.onProgress((progress) => {
-      progressBar.value = parseInt(progress.percent);
+      progressBar.value = progress.percent;
     });
 
     // click on start button
