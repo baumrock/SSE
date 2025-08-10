@@ -14,6 +14,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $sse->addStream('ssedemo-server-time', $this, 'serverTime');
     $sse->addStream('ssedemo-create-pages', $this, 'createPages');
     $sse->addStream('ssedemo-trash-pages', $this, 'trashPages');
+    $sse->addStream('ssedemo-empty-trash', $this, 'emptyTrash');
   }
 
   public static function getModuleInfo()
@@ -41,13 +42,10 @@ class SseDemo extends WireData implements Module, ConfigurableModule
   public function createPages(Sse $sse, Iterator $iterator)
   {
     // first run
-    if (!$iterator->count) $iterator->max = (int)$_GET['count'];
+    if ($iterator->num === 1) $iterator->max = (int)$_GET['count'];
 
     // abort if max is reached
-    if ($iterator->num > $iterator->max) {
-      $sse->send("SSE_STOP");
-      return;
-    }
+    if ($iterator->num > $iterator->max) return $sse->stop();
 
     // create page
     $p = wire()->pages->new([
@@ -57,7 +55,65 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     ]);
 
     // send progress
-    $sse->send($iterator->num . '/' . $iterator->max . ': ' . $p->name);
+    $sse->send($iterator->num . '/' . $iterator->max . ': created ' . $p->name);
+
+    // no sleep to instantly run next iteration
+    $sse->sleep = 0;
+  }
+
+  public function trashPages(Sse $sse, Iterator $iterator)
+  {
+    $selector = [
+      'parent' => 1,
+      'name^=' => 'tmp-',
+      'include' => 'all',
+      'check_access' => 0,
+    ];
+
+    // first run
+    if ($iterator->num === 1) {
+      $iterator->max = wire()->pages->count($selector);
+    }
+
+    // trash one page at a time
+    $p = wire()->pages->get($selector);
+    if ($p->id) $p->trash();
+    else {
+      $sse->send('No more pages to trash');
+      return $sse->stop();
+    }
+
+    // send progress
+    $sse->send($iterator->num . '/' . $iterator->max . ': trashed ' . $p->name);
+
+    // no sleep to instantly run next iteration
+    $sse->sleep = 0;
+  }
+
+
+  public function emptyTrash(Sse $sse, Iterator $iterator)
+  {
+    $selector = [
+      'parent' => wire()->config->trashPageID,
+      'include' => 'all',
+      'check_access' => 0,
+    ];
+
+    // first run
+    if ($iterator->num === 1) {
+      $iterator->max = wire()->pages->count($selector);
+    }
+
+    // trash one page at a time
+    $p = wire()->pages->get($selector);
+    if ($p->id) $p->delete(true);
+    else {
+      $sse->send('No more pages to delete');
+      return $sse->stop();
+    }
+
+    // send progress
+    $sse->send($iterator->num . '/' . $iterator->max . ': deleted ' . $p->name);
 
     // no sleep to instantly run next iteration
     $sse->sleep = 0;
@@ -78,6 +134,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'icon' => 'clock-o',
       'notes' => 'This will show the current server time every second.',
     ]);
+
     $inputfields->add([
       'type' => 'markup',
       'label' => 'Create Pages',
@@ -85,7 +142,8 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'icon' => 'plus',
       'notes' => 'This will create pages using template "basic-page" and set a custom name "tmp-xxx"',
     ]);
-    $count = wire()->pages->count([
+
+    $toTrash = wire()->pages->count([
       'parent' => 1,
       'name^=' => 'tmp-',
     ]);
@@ -94,13 +152,19 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'label' => 'Trash Created Pages',
       'value' => wire()->files->render(__DIR__ . '/demo/trash-pages.php'),
       'icon' => 'trash-o',
-      'notes' => "This will trash all $count pages with name tmp-...",
+      'notes' => "This will trash all $toTrash pages with name tmp-...",
+    ]);
+
+    $inTrash = wire()->pages->count([
+      'parent' => wire()->config->trashPageID,
+      'include' => 'all',
     ]);
     $inputfields->add([
       'type' => 'markup',
       'label' => 'Empty Trash',
-      'value' => 'tbd',
+      'value' => wire()->files->render(__DIR__ . '/demo/empty-trash.php'),
       'icon' => 'trash',
+      'notes' => "This will delete all $inTrash pages in trash",
     ]);
     return $inputfields;
   }

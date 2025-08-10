@@ -18,9 +18,7 @@
       'click',
       (e) => {
         e.preventDefault();
-        stream.start({
-          count: document.querySelector('#count').value,
-        });
+        stream.start();
       });
     // click on stop button
     document.querySelector('#stop-trash-pages').addEventListener(

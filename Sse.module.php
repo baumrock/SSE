@@ -6,6 +6,8 @@ use Sse\Iterator;
 
 class Sse extends WireData implements Module, ConfigurableModule
 {
+  const SSE_STOP = 'SSE_STOP';
+
   private array $streams = [];
   public $sleep;
 
@@ -64,6 +66,11 @@ class Sse extends WireData implements Module, ConfigurableModule
     echo "data: $message\n\n";
     echo str_pad('', 8186) . "\n";
     flush();
+  }
+
+  public function stop(): void
+  {
+    $this->send(self::SSE_STOP);
   }
 
   protected function stream(HookEvent $event): void

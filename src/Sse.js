@@ -34,8 +34,23 @@ var ProcessWire = ProcessWire || {};
       };
 
       // override this before calling start() for custom error handling
-      evtSource.onerror = () => {
-        alert("Error in SSE stream");
+      evtSource.onerror = (event) => {
+        // Check if this is a page unload/reload scenario
+        if (document.visibilityState === "hidden") {
+          return;
+        }
+
+        // Handle different error states
+        switch (event.target.readyState) {
+          case EventSource.CONNECTING:
+            console.log("SSE reconnecting...");
+            break;
+          case EventSource.CLOSED:
+            console.log("SSE connection closed");
+            break;
+          default:
+            console.warn("SSE connection error");
+        }
       };
     }
 
