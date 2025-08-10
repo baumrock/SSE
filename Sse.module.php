@@ -2,6 +2,8 @@
 
 namespace ProcessWire;
 
+use Sse\Iterator;
+
 class Sse extends WireData implements Module, ConfigurableModule
 {
   private array $streams = [];
@@ -90,6 +92,10 @@ class Sse extends WireData implements Module, ConfigurableModule
     header('Cache-Control: no-cache');
     header('Content-Type: text/event-stream');
 
+    // init iterator
+    require_once __DIR__ . '/classes/Iterator.php';
+    $iterator = new Iterator();
+
     // call the method on the object in an endless loop
     while (true) {
       // reset sleep to default 1s
@@ -97,13 +103,16 @@ class Sse extends WireData implements Module, ConfigurableModule
 
       // execute the callback
       // it can set a custom sleep via $sse->sleep = 0;
-      $object->$method($this);
+      $object->$method($this, $iterator);
 
       // flush output buffer
       while (ob_get_level() > 0) @ob_end_flush();
 
       // stop loop when connection is aborted
       if (connection_aborted()) break;
+
+      // tell the iterator that we've done one iteration
+      $iterator->increment();
 
       // sleep for the amount of seconds set by the callback
       // or for the default 1s

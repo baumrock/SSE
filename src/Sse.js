@@ -12,22 +12,43 @@ var ProcessWire = ProcessWire || {};
 
     constructor(name, onMessage) {
       this.name = name;
-      this.url = "/?sse=" + name;
+      this.urlParams = { sse: name };
       this.onMessage = onMessage;
+      this.rootUrl = ProcessWire.config.urls.root || "/";
     }
 
-    start() {
+    start(params) {
       if (this.started) return;
       this.started = true;
-      const evtSource = new EventSource(this.url, { withCredentials: true });
-      evtSource.onmessage = this.onMessage.bind(this);
+
+      // merge params with url params
+      const urlParams = { ...this.urlParams, ...params };
+
+      const evtSource = new EventSource(this.url(urlParams), {
+        withCredentials: true,
+      });
       this.evtSource = evtSource;
+      evtSource.onmessage = (event) => {
+        if (event.data === "SSE_STOP") this.stop();
+        this.onMessage(event);
+      };
+
+      // override this before calling start() for custom error handling
+      evtSource.onerror = () => {
+        alert("Error in SSE stream");
+      };
     }
 
     stop() {
       if (!this.started) return;
       this.evtSource.close();
       this.started = false;
+    }
+
+    url(params) {
+      const path = this.rootUrl;
+      const queryString = new URLSearchParams(params).toString();
+      return queryString ? `${path}?${queryString}` : path;
     }
   }
 

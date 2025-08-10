@@ -2,6 +2,8 @@
 
 namespace ProcessWire;
 
+use Sse\Iterator;
+
 class SseDemo extends WireData implements Module, ConfigurableModule
 {
   public function __construct()
@@ -11,6 +13,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $sse = wire()->modules->get('Sse');
     $sse->addStream('ssedemo-server-time', $this, 'serverTime');
     $sse->addStream('ssedemo-create-pages', $this, 'createPages');
+    $sse->addStream('ssedemo-trash-pages', $this, 'trashPages');
   }
 
   public static function getModuleInfo()
@@ -35,6 +38,31 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $sse->send(date('Y-m-d H:i:s'));
   }
 
+  public function createPages(Sse $sse, Iterator $iterator)
+  {
+    // first run
+    if (!$iterator->count) $iterator->max = (int)$_GET['count'];
+
+    // abort if max is reached
+    if ($iterator->num > $iterator->max) {
+      $sse->send("SSE_STOP");
+      return;
+    }
+
+    // create page
+    $p = wire()->pages->new([
+      'parent' => 1,
+      'template' => 'basic-page',
+      'name' => 'tmp-' . uniqid(),
+    ]);
+
+    // send progress
+    $sse->send($iterator->num . '/' . $iterator->max . ': ' . $p->name);
+
+    // no sleep to instantly run next iteration
+    $sse->sleep = 0;
+  }
+
   /** --- regular methods --- */
 
   /**
@@ -57,11 +85,16 @@ class SseDemo extends WireData implements Module, ConfigurableModule
       'icon' => 'plus',
       'notes' => 'This will create pages using template "basic-page" and set a custom name "tmp-xxx"',
     ]);
+    $count = wire()->pages->count([
+      'parent' => 1,
+      'name^=' => 'tmp-',
+    ]);
     $inputfields->add([
       'type' => 'markup',
       'label' => 'Trash Created Pages',
-      'value' => 'tbd',
+      'value' => wire()->files->render(__DIR__ . '/demo/trash-pages.php'),
       'icon' => 'trash-o',
+      'notes' => "This will trash all $count pages with name tmp-...",
     ]);
     $inputfields->add([
       'type' => 'markup',
