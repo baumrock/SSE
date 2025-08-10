@@ -11,7 +11,7 @@
       'ssedemo-trash-pages',
       (event) => {
         const textarea = document.querySelector('textarea[name="trash-status"]');
-        textarea.value = event.data + "\n" + textarea.value;
+        stream.prepend(textarea, event.data, 100);
       }
     );
 

@@ -11,7 +11,7 @@
       'ssedemo-create-pages',
       (event) => {
         const textarea = document.querySelector('textarea[name="create-status"]');
-        textarea.value = event.data + "\n" + textarea.value;
+        stream.prepend(textarea, event.data, 100);
       }
     );
     // click on start button

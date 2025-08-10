@@ -30,6 +30,16 @@ var ProcessWire = ProcessWire || {};
       if (throttle) this.throttle = throttle;
     }
 
+    /**
+     * Write data to a textarea, keeping the last `maxLines` lines.
+     */
+    prepend(textarea, data, maxLines = 100) {
+      let currentValue = textarea.value;
+      let lines = currentValue.split("\n");
+      if (lines.length > maxLines) lines = lines.slice(0, maxLines);
+      textarea.value = data + "\n" + lines.join("\n");
+    }
+
     setProgress(event) {
       if (!this.progressCallback) return;
       if (!event.data.startsWith("{")) return;

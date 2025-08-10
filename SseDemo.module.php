@@ -108,6 +108,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     }
 
     // trash one page at a time
+    wire()->pages->uncacheAll();
     $p = wire()->pages->get($selector);
     if ($p->id) $p->delete(true);
     else {

@@ -11,7 +11,12 @@
       'ssedemo-empty-trash',
       (event) => {
         const textarea = document.querySelector('textarea[name="empty-trash-status"]');
-        textarea.value = event.data + "\n" + textarea.value;
+        try {
+          let json = JSON.parse(event.data);
+          stream.prepend(textarea, json.message, 100);
+        } catch (error) {
+          stream.prepend(textarea, event.data);
+        }
       }
     );
 

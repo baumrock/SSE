@@ -198,3 +198,21 @@ stream.onProgress((progress) => {
 ```
 
 Note: The `progress` object does not only contain the percent, it also contains the `num` (current 1-based iteration count) and `max` properties.
+
+## sse.prepend()
+
+When writing SSE event data to a textarea the content of the textarea can quickly grow to a lot of lines and this will cause a lot of work for the browser.
+
+That's why it's recommended to use the `sse.prepend()` helper:
+
+```js
+const stream = ProcessWire.Sse.stream(
+  'ssedemo-trash-pages',
+  (event) => {
+    const textarea = document.querySelector('textarea[name="trash-status"]');
+    stream.prepend(textarea, event.data, 100);
+  }
+);
+```
+
+This will write `event.data` to the textarea and the final parameter `100` will tell it to cut off every line after the 100th, keeping the textarea performant and readable.
