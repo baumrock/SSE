@@ -43,6 +43,9 @@ class SseDemo extends WireData implements Module, ConfigurableModule
 
   public function createPages(Sse $sse, Iterator $iterator)
   {
+    $user = wire()->user;
+    if (!$user->isSuperuser()) die('no access');
+
     // first run
     if ($iterator->num === 1) $iterator->max = (int)$_GET['count'];
 
@@ -65,6 +68,9 @@ class SseDemo extends WireData implements Module, ConfigurableModule
 
   public function trashPages(Sse $sse, Iterator $iterator)
   {
+    $user = wire()->user;
+    if (!$user->isSuperuser()) die('no access');
+
     $selector = [
       'parent' => 1,
       'name^=' => 'sse-tmp-',
@@ -94,9 +100,11 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     $sse->sleep = 0;
   }
 
-
   public function emptyTrash(Sse $sse, Iterator $iterator)
   {
+    $user = wire()->user;
+    if (!$user->isSuperuser()) die('no access');
+
     $selector = [
       'parent' => wire()->config->trashPageID,
       'include' => 'all',
@@ -108,7 +116,6 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     }
 
     // trash one page at a time
-    wire()->pages->uncacheAll();
     $p = wire()->pages->get($selector);
     if ($p->id) $p->delete(true);
     else {
