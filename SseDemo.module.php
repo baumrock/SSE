@@ -47,10 +47,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     if (!$user->isSuperuser()) die('no access');
 
     // first run
-    if ($iterator->num === 1) $iterator->max = (int)$_GET['count'];
-
-    // abort if max is reached
-    if ($iterator->num > $iterator->max) return $sse->stop();
+    if ($iterator->first) $iterator->max = (int)$_GET['count'];
 
     // create page
     $p = wire()->pages->new([
@@ -61,6 +58,9 @@ class SseDemo extends WireData implements Module, ConfigurableModule
 
     // send progress
     $sse->send($iterator->num . '/' . $iterator->max . ': created ' . $p->name);
+
+    // abort if last iteration
+    if ($iterator->last) return $sse->stop();
 
     // no sleep to instantly run next iteration
     $sse->sleep = 0;
@@ -78,9 +78,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     ];
 
     // first run
-    if ($iterator->num === 1) {
-      $iterator->max = wire()->pages->count($selector);
-    }
+    if ($iterator->first) $iterator->max = wire()->pages->count($selector);
 
     // trash one page at a time
     $p = wire()->pages->get($selector);
@@ -111,9 +109,7 @@ class SseDemo extends WireData implements Module, ConfigurableModule
     ];
 
     // first run
-    if ($iterator->num === 1) {
-      $iterator->max = wire()->pages->count($selector);
-    }
+    if ($iterator->first) $iterator->max = wire()->pages->count($selector);
 
     // trash one page at a time
     $p = wire()->pages->get($selector);
