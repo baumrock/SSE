@@ -16,7 +16,7 @@ var ProcessWire = ProcessWire || {};
       this.name = name;
       this.urlParams = { sse: name };
       this.onMessage = onMessage;
-      this.rootUrl = ProcessWire.config.urls.root || "/";
+      this.rootUrl = ProcessWire.config?.urls?.root || "/";
     }
 
     async getUserToken() {

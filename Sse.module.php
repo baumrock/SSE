@@ -35,7 +35,16 @@ class Sse extends WireData implements Module, ConfigurableModule
 
   public function init(): void
   {
+    // url hooks
     wire()->addHook('/sse-user-token', $this, 'getUserToken');
+
+    // create minified assets
+    if (
+      wire()->config->rockdevtools
+      && wire()->modules->isInstalled('RockDevTools')
+    ) {
+      rockdevtools()->assets()->minify(__DIR__ . '/src', __DIR__ . '/dst');
+    }
   }
 
   public function ready(): void
